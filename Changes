@@ -1,0 +1,5 @@
+Revision history for Perl extension DBIx::NamedQuery.
+
+0.10  2006-06-17
+	- original version; created by h2xs
+

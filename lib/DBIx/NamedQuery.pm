@@ -5,6 +5,7 @@ use 5.006;
 use strict;
 use warnings;
 
+use Carp ();
 use Exporter ();
 use FileHandle ();
 
@@ -14,6 +15,7 @@ use FileHandle ();
 
 # History
 # 0.10 (2006-06-14) - Initial internal release
+# 0.11 (2006-06-26) - Fixes in code and in documentation
 
 
 ################################################################################
@@ -24,7 +26,7 @@ our @EXPORT_OK = qw(load_named_queries load_named_queries_from_file
 		execute_named_query select_row_from_named_query
 		);
 
-our $VERSION = '0.10';
+our $VERSION = '0.11';
 
 our %NAMED_QUERY = ();
 
@@ -38,6 +40,9 @@ sub load_named_queries
 	if (not defined $stream_handle) {
 		# By default use DATA stream from main program
 		$stream_handle = \*main::DATA;
+	} elsif (eof($stream_handle)) {
+		Carp::carp("Not an open filehandle: <$stream_handle>");
+		return undef;
 	}
 	# Load complete contents of the stream and preprocess it
 	my $stream_contents;
@@ -203,8 +208,8 @@ DBIx::NamedQuery - Utilities for decoupling of Perl code and SQL statements
 
   use DBIx::NamedQuery qw(EXTEND_DBI);
 
-  DBI::NamedQuery::load_named_queries(*DATA);
-  DBI::NamedQuery::load_named_queries_from_file('customers.sql');
+  DBIx::NamedQuery::load_named_queries(*DATA);
+  DBIx::NamedQuery::load_named_queries_from_file('customers.sql');
   
   $DBI_statement = $DBI_database_handle->prepare_named_query('invoice');
   
@@ -255,7 +260,7 @@ C<undef> in case of error.
 Returns a SQL query associated with a given label. If there is no such label,
 returns C<undef>.
 
-=item set_named_query (LABEL1 => SQL1, ...)
+=item set_named_query (LABEL1 =E<gt> SQL1, ...)
 
 Allows to add/replace one or more named queries in the current set.
 
@@ -265,22 +270,22 @@ Allows to add/replace one or more named queries in the current set.
 
 =over 4
 
-=item $DB->execute_named_query (LABEL [, BIND_VALUES])
+=item $DB-E<gt>execute_named_query (LABEL [, BIND_VALUES])
 
 Prepares and executes SQL query associated with the label. Placeholders in
 SQL are bound with remaining parameters. Returns DBI statement handle or
 C<undef> in case of error.
 
-=item $DB->select_row_from_named_query (LABEL [, BIND_VALUES])
+=item $DB-E<gt>select_row_from_named_query (LABEL [, BIND_VALUES])
 
 Executes (most likely C<SELECT>) SQL statement identified by the label
 and returns the first row of data as an array reference. In case of error,
 C<undef> is returned instead.
 
-=item $DB->prepare_named_query (LABEL [, PREPARE_OPTIONS])
+=item $DB-E<gt>prepare_named_query (LABEL [, PREPARE_OPTIONS])
 
 Prepares SQL statement identified by the label. Prepare options are passed
-to standard DBI method C<$DB->prepare()> as additional parameters.
+to standard DBI method C<$DB-E<gt>prepare()> as additional parameters.
 
 =back
 
